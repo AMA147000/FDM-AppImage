@@ -12,6 +12,7 @@ curl https://raw.githubusercontent.com/AMA147000/FDM-AppImage/main/script.sh | b
 
 ### Manual repackaging instructions:
   1. Download the [`pkg2appimage`](https://github.com/AppImageCommunity/pkg2appimage) CLI.
-  2. Download the `FDM.yml` file from the current repo.
-  3. Run `pkg2appimage-*.AppImage FDM.yml`.
-  4. The FDM AppImage will be generated inside the `./out` directory.
+  2. Make it executable using `chmod +x pkg2appimage-*.AppImage`.
+  3. Download the `FDM.yml` file from the current repo.
+  4. Run `./pkg2appimage-*.AppImage FDM.yml`.
+  5. The FDM AppImage will be generated inside the `./out` directory.
