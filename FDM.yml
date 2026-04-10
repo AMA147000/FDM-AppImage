@@ -1,0 +1,9 @@
+app: freedownloadmanager
+
+ingredients:
+  script:
+    - wget https://files2.freedownloadmanager.org/6/latest/freedownloadmanager.deb
+
+script:
+  - ln -s ../../opt/freedownloadmanager/fdm ./usr/bin/fdm
+  - mv ./usr/share/applications/freedownloadmanager.desktop .
