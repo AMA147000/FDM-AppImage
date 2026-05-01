@@ -21,7 +21,7 @@ jobs:
       - name: Get latest CI build release version
         id: ci-release-version
         run: |
-          VERSION=$(gh release list --limit 1 --json tagName -q '.[0].tagName' || echo "none")
+          VERSION=$(curl -sL "https://api.github.com/repos/AMA147000/FDM-AppImage/releases/latest" | jq -r ".tag_name")
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Compare versions & repackage if needed
