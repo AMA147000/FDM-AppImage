@@ -32,6 +32,9 @@ jobs:
           if [ "${{ steps.upstream-version.outputs.VERSION }}" != "${{ steps.ci-release-version.outputs.VERSION }}" ]; then
             echo "New upstream version available! Repackaging new version..."
 
+            sudo apt-get update
+            sudo apt-get install fuse
+
             wget -c "$(wget -qO- https://api.github.com/repos/AppImage/appimagetool/releases/latest \
               | grep browser_download_url \
               | grep x86_64.AppImage \
