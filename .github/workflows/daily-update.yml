@@ -1,0 +1,56 @@
+name: Check Upstream Release
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # daily
+  workflow_dispatch:
+
+jobs:
+  check-and-update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Get latest upstream version
+        id: upstream-version
+        run: |
+          VERSION=$(curl -s https://www.freedownloadmanager.org/download-fdm-for-linux.htm | grep -oP 'FDM \K[0-9.]+' | head -n 1)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Get latest CI build release version
+        id: ci-release-version
+        run: |
+          VERSION=$(gh release list --limit 1 --json tagName -q '.[0].tagName' || echo "none")
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Compare versions & repackage if needed
+        run: |
+          echo "Upstream version: ${{ steps.upstream-version.outputs.VERSION }}"
+          echo "CI release version: ${{ steps.ci-release-version.outputs.VERSION }}"
+
+          if [ "${{ steps.upstream-version.outputs.VERSION }}" != "${{ steps.ci-release-version.outputs.VERSION }}" ]; then
+            echo "New upstream version available! Repackaging new version..."
+
+            wget -c "$(wget -qO- https://api.github.com/repos/AppImage/appimagetool/releases/latest \
+              | grep browser_download_url \
+              | grep x86_64.AppImage \
+              | cut -d '"' -f 4)"
+            chmod +x ./appimagetool-*.AppImage
+
+            curl https://raw.githubusercontent.com/AMA147000/FDM-AppImage/main/script.sh | bash
+            ./Free_Download_Manager-*.AppImage --appimage-extract
+
+            ./appimagetool-*.AppImage squashfs-root -u "gh-releases-zsync|AMA147000|FDM-AppImage|latest|Free_Download_Manager-x86_64.AppImage.zsync"
+          else
+            echo "CI release is up to date with upstream."
+          fi
+
+      - name: Release new AppImage
+        uses: softprops/action-gh-release@v3
+        if: steps.upstream-version.outputs.VERSION != steps.ci-release-version.outputs.VERSION
+        with:
+          tag_name: ${{ steps.upstream-version.outputs.VERSION }}
+          files: |
+            Free_Download_Manager-x86_64.AppImage
+            Free_Download_Manager-x86_64.AppImage.zsync
