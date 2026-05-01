@@ -33,7 +33,7 @@ jobs:
             echo "New upstream version available! Repackaging new version..."
 
             sudo apt-get update
-            sudo apt-get install fuse
+            sudo apt-get install fuse imagemagick
 
             wget -c "$(wget -qO- https://api.github.com/repos/AppImage/appimagetool/releases/latest \
               | grep browser_download_url \
