@@ -12,10 +12,13 @@ jobs:
       contents: write
 
     steps:
+        # This uses the flathub version instead of the deb one 
+        # as they changed their website to not display a version number for linux
+        # I know this is less than ideal, but for now it works, so yeah...
       - name: Get latest upstream version
         id: upstream-version
         run: |
-          VERSION=$(curl -s https://www.freedownloadmanager.org/download-fdm-for-linux.htm | grep -oP 'FDM \K[0-9.]+' | head -n 1)
+          VERSION=$(curl -s "https://flathub.org/en/apps/org.freedownloadmanager.Manager" | awk -F'"softwareVersion":"' 'NF>1 {split($2,a,"\""); print a[1]; exit}')
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Get latest CI build release version
