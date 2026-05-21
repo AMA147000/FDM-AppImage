@@ -12,30 +12,27 @@ jobs:
       contents: write
 
     steps:
-        # This uses the flathub version instead of the deb one 
-        # as they changed their website to not display a version number for linux
-        # I know this is less than ideal, but for now it works, so yeah...
       - name: Get latest upstream version
         id: upstream-version
         run: |
-          VERSION=$(curl -s "https://flathub.org/en/apps/org.freedownloadmanager.Manager" | awk -F'"softwareVersion":"' 'NF>1 {split($2,a,"\""); print a[1]; exit}')
+          sudo apt-get install dpkg
+          wget https://files2.freedownloadmanager.org/6/latest/freedownloadmanager.deb
+          VERSION=$(dpkg-deb -f freedownloadmanager.deb Version)
+          echo "Upstream version: $VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Get latest CI build release version
         id: ci-release-version
         run: |
           VERSION=$(curl -sL "https://api.github.com/repos/AMA147000/FDM-AppImage/releases/latest" | jq -r ".tag_name")
+          echo "CI release version: $VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Compare versions & repackage if needed
         run: |
-          echo "Upstream version: ${{ steps.upstream-version.outputs.VERSION }}"
-          echo "CI release version: ${{ steps.ci-release-version.outputs.VERSION }}"
-
           if [ "${{ steps.upstream-version.outputs.VERSION }}" != "${{ steps.ci-release-version.outputs.VERSION }}" ]; then
             echo "New upstream version available! Repackaging new version..."
 
-            sudo apt-get update
             sudo apt-get install fuse imagemagick
 
             wget -c "$(wget -qO- https://api.github.com/repos/AppImage/appimagetool/releases/latest \
@@ -44,10 +41,19 @@ jobs:
               | cut -d '"' -f 4)"
             chmod +x ./appimagetool-*.AppImage
 
-            curl https://raw.githubusercontent.com/AMA147000/FDM-AppImage/main/script.sh | bash
-            ./Free_Download_Manager-*.AppImage --appimage-extract
+            wget -c "$(wget -qO- https://api.github.com/repos/AppImage/pkg2appimage/releases/latest \
+              | grep browser_download_url \
+              | grep x86_64.AppImage \
+              | cut -d '"' -f 4)"
+            chmod +x ./pkg2appimage-*.AppImage
 
-            ./appimagetool-*.AppImage squashfs-root -u "gh-releases-zsync|AMA147000|FDM-AppImage|latest|Free_Download_Manager-x86_64.AppImage.zsync"
+            wget https://raw.githubusercontent.com/AMA147000/FDM-AppImage/main/FDM-for-ci.yml
+
+            mkdir ./freedownloadmanager/
+            mv ./freedownloadmanager.deb ./freedownloadmanager/
+
+            ./pkg2appimage-*.AppImage FDM-for-ci.yml
+            ./appimagetool-*.AppImage ./freedownloadmanager/freedownloadmanager.AppDir -u "gh-releases-zsync|AMA147000|FDM-AppImage|latest|Free_Download_Manager-x86_64.AppImage.zsync"
           else
             echo "CI release is up to date with upstream."
           fi

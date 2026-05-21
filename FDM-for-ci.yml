@@ -1,0 +1,9 @@
+app: freedownloadmanager
+
+ingredients:
+  debs:
+    - ./freedownloadmanager.deb
+
+script:
+  - ln -s ../../opt/freedownloadmanager/fdm ./usr/bin/fdm
+  - mv ./usr/share/applications/freedownloadmanager.desktop .
