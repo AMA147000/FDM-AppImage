@@ -60,6 +60,7 @@ jobs:
         if: steps.upstream-version.outputs.VERSION != steps.ci-release-version.outputs.VERSION
         with:
           tag_name: ${{ steps.upstream-version.outputs.VERSION }}
+          body: ""
           files: |
             Free_Download_Manager-x86_64.AppImage
             Free_Download_Manager-x86_64.AppImage.zsync
