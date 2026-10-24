@@ -28,35 +28,32 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Compare versions & repackage if needed
+        if: steps.upstream-version.outputs.VERSION != steps.ci-release-version.outputs.VERSION
         run: |
-          if [ "${{ steps.upstream-version.outputs.VERSION }}" != "${{ steps.ci-release-version.outputs.VERSION }}" ]; then
-            echo "New upstream version available! Repackaging new version..."
+          echo "New upstream version available! Repackaging new version..."
 
-            sudo apt-get update
-            sudo apt-get install libfuse2t64 imagemagick
+          sudo apt-get update
+          sudo apt-get install libfuse2t64 imagemagick
 
-            wget -c "$(wget -qO- https://api.github.com/repos/AppImage/appimagetool/releases/latest \
-              | grep browser_download_url \
-              | grep x86_64.AppImage \
-              | cut -d '"' -f 4)"
-            chmod +x ./appimagetool-*.AppImage
+          wget -c "$(wget -qO- https://api.github.com/repos/AppImage/appimagetool/releases/latest \
+            | grep browser_download_url \
+            | grep x86_64.AppImage \
+            | cut -d '"' -f 4)"
+          chmod +x ./appimagetool-*.AppImage
 
-            wget -c "$(wget -qO- https://api.github.com/repos/AppImage/pkg2appimage/releases/latest \
-              | grep browser_download_url \
-              | grep x86_64.AppImage \
-              | cut -d '"' -f 4)"
-            chmod +x ./pkg2appimage-*.AppImage
+          wget -c "$(wget -qO- https://api.github.com/repos/AppImage/pkg2appimage/releases/latest \
+            | grep browser_download_url \
+            | grep x86_64.AppImage \
+            | cut -d '"' -f 4)"
+          chmod +x ./pkg2appimage-*.AppImage
 
-            wget https://raw.githubusercontent.com/AMA147000/FDM-AppImage/main/FDM-for-ci.yml
+          wget https://raw.githubusercontent.com/AMA147000/FDM-AppImage/main/FDM-for-ci.yml
 
-            mkdir ./freedownloadmanager/
-            mv ./freedownloadmanager.deb ./freedownloadmanager/
+          mkdir ./freedownloadmanager/
+          mv ./freedownloadmanager.deb ./freedownloadmanager/
 
-            ./pkg2appimage-*.AppImage FDM-for-ci.yml
-            ./appimagetool-*.AppImage ./freedownloadmanager/freedownloadmanager.AppDir -u "gh-releases-zsync|AMA147000|FDM-AppImage|latest|Free_Download_Manager-x86_64.AppImage.zsync"
-          else
-            echo "CI release is up to date with upstream."
-          fi
+          ./pkg2appimage-*.AppImage FDM-for-ci.yml
+          ./appimagetool-*.AppImage ./freedownloadmanager/freedownloadmanager.AppDir -u "gh-releases-zsync|AMA147000|FDM-AppImage|latest|Free_Download_Manager-x86_64.AppImage.zsync"
 
       - name: Release new AppImage
         uses: softprops/action-gh-release@v3
