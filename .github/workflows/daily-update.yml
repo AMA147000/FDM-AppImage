@@ -15,7 +15,6 @@ jobs:
       - name: Get latest upstream version
         id: upstream-version
         run: |
-          sudo apt-get install dpkg
           wget https://files2.freedownloadmanager.org/6/latest/freedownloadmanager.deb
           VERSION=$(dpkg-deb -f freedownloadmanager.deb Version)
           echo "Upstream version: $VERSION"
@@ -33,7 +32,8 @@ jobs:
           if [ "${{ steps.upstream-version.outputs.VERSION }}" != "${{ steps.ci-release-version.outputs.VERSION }}" ]; then
             echo "New upstream version available! Repackaging new version..."
 
-            sudo apt-get install fuse imagemagick
+            sudo apt-get update
+            sudo apt-get install libfuse2t64 imagemagick
 
             wget -c "$(wget -qO- https://api.github.com/repos/AppImage/appimagetool/releases/latest \
               | grep browser_download_url \
